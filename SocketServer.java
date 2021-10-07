@@ -17,7 +17,7 @@ public class SocketServer {
 	String listeningPort = "";
 
 	// constructor
-	public SocketServer()
+	public void SocketServer()
 	{
 	try{
 		ServerSocket incoming = new ServerSocket(listeningPort);
@@ -32,7 +32,7 @@ public class SocketServer {
 		try{
 		Socket clientConnection = incoming.accept();
 		System.out.println("Client Accepted");
-        
+
 		Controller threadController = new Controller(clientConnection);
 		new Thread(threadController).start();
 		}
