@@ -16,9 +16,8 @@ public class Controller implements Runnable{
     public void run(){
         try{
             BufferReader input = new BufferReader(new InputStreamReader(clientConnection.getInputStream()));
-            PrintWriter output = new PrintWriter(clientConnection.getOutputStream(), true);
-            String data = input.readLine();
-            output.println();
+            byte[] data = input.readLine();
+            Message message =  (NodeID clientConnection.getID(), byte [] data);
         }
         catch (IOException e){
             e.printStackTrace;
