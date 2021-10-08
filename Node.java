@@ -17,7 +17,8 @@ public class Node
 	String neighborPort;
 	String neighborName;
 	NodeID newID;
-	 
+	Socket clientConnection = new Socket();
+	
 	// constructor
 	public Node(NodeID identifier, String configFile, Listener listener)
 	{
@@ -65,13 +66,24 @@ public class Node
 				}
 			}
 			while(neighborScanner.hasNextLine()) {
-				neighborLine = neighborScanner.nextLine();
 				if(!neighborLine.startsWith("#")){
-					if(m == newID.getID() + 2){
-					String[] neighborLines = neighborLine.split(" ");
-					String neighborName = neighborLines[1];
-					String neighborPort = neighborLines[2];
+					for(int i = 0; i < lines.length; i++){
+						do{
+							neighborLine = neighborScanner.nextLine();
+							m++;
+						}while(m != neighborID[i]+ 2);
+						String[] neighborLines = neighborLine.split(" ");
+							neighborName = lines[1];
+							neighborPort = lines[2];
+
+						//if(m == neighborID[i]+ 2){
+						//	String[] neighborLines = neighborLine.split(" ");
+						//	neighborName = lines[1];
+						//	neighborPort = lines[2];
+						//}
+						//m++;
 					}
+					
 				}
 			}
 		}
@@ -84,9 +96,11 @@ public class Node
 
 	int listeningPortInt = Integer.parseInt(listeningPort);
 	int neighborPortInt = Integer.parseInt(neighborPort);
-
-	SocketServer s = new SocketServer();
-	s.runServer(listeningPortInt);
+	
+	public void main(String[] args){
+		SocketServer s = new SocketServer();
+		s.runServer(listeningPortInt);
+	}
 
 	// methods
 	public NodeID[] getNeighbors()
@@ -105,9 +119,9 @@ public class Node
 		for(int i = 0; i < neighbors.length; i++){
 			if(destination == neighbors[i]){
 				try{
-					Socket clientConnection = new Socket(neighborName, neighborPort); 
+					clientConnection = new Socket(neighborName, neighborPortInt); 
 					OutputStream output = clientConnection.getOutputStream(); 
-					ObjectOutputStream objectOut = new ObjectOutputStream();  
+					ObjectOutputStream objectOut = new ObjectOutputStream(output);  
 					objectOut.writeObject(message);
 				}
 				catch(UnknownHostException ex){
@@ -125,9 +139,9 @@ public class Node
 	{
 		for(int i = 0; i < neighbors.length; i++){
 			try{
-				Socket clientConnection = new Socket(neighborName, neighborPort); 
+				//clientConnection = new Socket(neighborName, neighborPortInt); 
 				OutputStream output = clientConnection.getOutputStream(); 
-				ObjectOutputStream objectOut = new ObjectOutputStream();  
+				ObjectOutputStream objectOut = new ObjectOutputStream(output);  
 				objectOut.writeObject(message);
 			}
 			catch(UnknownHostException ex){
@@ -139,8 +153,13 @@ public class Node
 		}
 	}	
 	
-	public void tearDown()
+	public void tearDown ()
 	{
-		Socket clientConnection.close();
+		try{
+			clientConnection.close();
+		}
+		catch(IOException e){
+			//
+		}
 	}
 }
