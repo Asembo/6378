@@ -13,10 +13,11 @@ public class Node
 	File file;
 	int numNodes = 0;
 	String hostName = "";
+	String [] neighborName = new String [2];
 	String listeningPort = "";
-	String neighborPort;
-	String neighborName;
+	String [] neighborPort = new String [2];
 	NodeID newID;
+	int [] neighborID = new int [2];
 	Socket clientConnection = new Socket();
 	
 	// constructor
@@ -46,7 +47,9 @@ public class Node
 					{
 						String[] lines = line.split(" ");
 						hostName = lines[1];
+						System.out.println("hostName: " + hostName);
 						listeningPort = lines[2];
+						System.out.println("listeningPort: " + listeningPort);
 					}
 					if(n == numNodes+identifier.getID()+1)
 					{
@@ -59,47 +62,53 @@ public class Node
 							   else{
 								   NodeID newID = new NodeID(Integer.parseInt(lines[i]));
 								   neighbors[i] = newID;
+								   neighborID[i] = (Integer.parseInt(lines[i]));
+								   int p = neighborID[i];
+								   /*while(neighborScanner.hasNextLine()){
+									   neighborLine = neighborScanner.nextLine();
+									   if(!neighborLine.startsWith("#")){
+										   String [] neighborLines = neighborLine.split(" ");
+										if(n == Integer.parseInt(neighborLines[0])){
+											neighborName[i] = neighborLines[1];
+											neighborPort[i] = neighborLines[2];
+										}
+									   }
+									   
+								   }*/
 							   }
-						   }
+							   for(int j = 0; j < neighborID.length; j++){
+								while(neighborScanner.hasNextLine()) {
+									neighborLine = neighborScanner.nextLine();
+										if(!neighborLine.startsWith("#")){
+											if(m == neighborID[i]+ 1){
+											String[] neighborLines = neighborLine.split(" ");
+											neighborName[j] = neighborLines[1];
+											neighborPort[j] = neighborLines[2];
+										}
+										m++;
+										}
+									   }
+							   }
+							}	
+							
 					}
 					n++;
-				}
-			}
-			while(neighborScanner.hasNextLine()) {
-				if(!neighborLine.startsWith("#")){
-					for(int i = 0; i < lines.length; i++){
-						do{
-							neighborLine = neighborScanner.nextLine();
-							m++;
-						}while(m != neighborID[i]+ 2);
-						String[] neighborLines = neighborLine.split(" ");
-							neighborName = lines[1];
-							neighborPort = lines[2];
-
-						//if(m == neighborID[i]+ 2){
-						//	String[] neighborLines = neighborLine.split(" ");
-						//	neighborName = lines[1];
-						//	neighborPort = lines[2];
-						//}
-						//m++;
-					}
-					
 				}
 			}
 		}
 		catch (FileNotFoundException e) {
 			System.out.println(e);
 		}
-	
+		System.out.println("NeighborID: " + Arrays.toString(neighborID));
+		System.out.println("NeighborName: " + Arrays.toString(neighborName));
+		System.out.println("NeighborPort: " + Arrays.toString(neighborPort));
 	}
-
-
-	int listeningPortInt = Integer.parseInt(listeningPort);
-	int neighborPortInt = Integer.parseInt(neighborPort);
+	//int listeningPortInt = Integer.parseInt(listeningPort);
+	//int neighborPortInt = Integer.parseInt(neighborPort);
 	
 	public void main(String[] args){
 		SocketServer s = new SocketServer();
-		s.runServer(listeningPortInt);
+		s.runServer(1);
 	}
 
 	// methods
@@ -119,7 +128,7 @@ public class Node
 		for(int i = 0; i < neighbors.length; i++){
 			if(destination == neighbors[i]){
 				try{
-					clientConnection = new Socket(neighborName, neighborPortInt); 
+					clientConnection = new Socket(neighborName[destination.getID()], 11233); 
 					OutputStream output = clientConnection.getOutputStream(); 
 					ObjectOutputStream objectOut = new ObjectOutputStream(output);  
 					objectOut.writeObject(message);
@@ -137,9 +146,9 @@ public class Node
 
 	public void sendToAll(Message message)
 	{
-		for(int i = 0; i < neighbors.length; i++){
+		for(int i = 0; i < neighborID.length; i++){
 			try{
-				//clientConnection = new Socket(neighborName, neighborPortInt); 
+				clientConnection = new Socket(neighborName[i], 11233); 
 				OutputStream output = clientConnection.getOutputStream(); 
 				ObjectOutputStream objectOut = new ObjectOutputStream(output);  
 				objectOut.writeObject(message);
