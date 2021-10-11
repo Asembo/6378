@@ -1,4 +1,4 @@
-# 6378
+# CS 6378 Project
 
 AUTHORS:
 	Kevin Mashayekhi
