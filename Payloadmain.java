@@ -60,7 +60,7 @@ class Payload implements java.io.Serializable
 		//Input streams help with deserialization
 		ByteArrayInputStream bis = new ByteArrayInputStream(data);
 		ObjectInputStream ois = null;
-		Payload p = new Payload(0);
+		Payload p = new Payload(0, 0, null);
 		try 
 		{ 
 			ois = new ObjectInputStream(bis);
