@@ -9,6 +9,8 @@ class Payload implements java.io.Serializable
 {
 	//Payload may be configured as per the need of the application
 	int messageType;
+	int roundHopID;
+	NodeID [] oneHopNeighbors;
 
 	//Constructor
 	public Payload(int m, int round, NodeID [] neighbors)
