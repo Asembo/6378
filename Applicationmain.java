@@ -53,10 +53,8 @@ class Application implements Listener
         if(messageRound > myRound)
         {
             //buffer
-            while(myRound < messageRound)
-            {
-                wait();
-            }
+            buffer(messageRound, message);
+            return;
         }
 
         else if(messageRound == myRound)
@@ -80,7 +78,6 @@ class Application implements Listener
                 for(i = 0; i < neighborLength; i++)
                 {
                     rcvdNeighbors[i] = p.oneHopNeighbors[i];
-                    allHopNeighbors[i + allHopLength] = (myNode.getNeighbors())[i];
                 }
 
                 int rcvdNeighborLength = rcvdNeighbors.length;
@@ -91,15 +88,24 @@ class Application implements Listener
                     {
                         if (!(rcvdNeighbors[i] == myID) || (rcvdNeighbors[i] == allHopNeighbors[j]))
                         {
+                            allHopNeighbors[i + allHopLength] = rcvdNeighbors[i];
                             //write to output file
                             myRound++;
                         }
                     }
-
                 }   
             }   
-        }
-        
+        }  
+    }
+
+    //if message from a future round is received, buffer the message
+    public synchronized void buffer(Message message, int bufferRound)
+    {
+        if(bufferRound == myRound)
+            {
+                //wait till message round is equal to my round
+                receive(message);
+            }
     }
     
     //If communication is broken with one neighbor, tear down the node
