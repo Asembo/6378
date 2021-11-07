@@ -12,12 +12,30 @@ class Application implements Listener
     
     //Node ids of my neighbors
     NodeID[] neighbors;
-    
+
+    //node ID array of all hop neighbors
+    NodeID[] allHopNeighbors = null;
+
+    //length of array of all hop neihgbors to be checked to avoid repeating nodes
+    int allHopLength = 0;
+
     //Flag to check if connection to neighbors[i] has been broken
     boolean[] brokenNeighbors;
     
     //flag to indicate that the algorithm is over
     boolean terminating;
+    
+    //number of rows in output file used to indicate what round is being executed
+    int numOfRows = 0;
+
+    //number of nodes in the distributed system
+    int numOfNodes = 0;
+
+    //round ID indicating current round
+    int myRound = 0;
+
+    //length of one-hop neighbor array
+    int neighborLength = 0;
     
     //synchronized receive
     //invoked by Node class when it receives a message
@@ -26,53 +44,60 @@ class Application implements Listener
         //Extract payload from message
         Payload p = Payload.getPayload(message.data);
         
-        int round = p.round;
+        int messageRound = p.roundHopID;
 
-        if(round <= numOfRows)
+        if(messageRound < myRound)
         {
             return;
         }
-
-        if(round == numOfRows)
+        if(messageRound > myRound)
         {
-            if(p.messageType == 1)
-        {
-            //Messagetype 1 is (do getNeighbors)
-            //send oneHopNeighbors to source
-			
-            Payload newp = new Payload(2, round, oneHopNeighbors);
-            Message msg = new Message(myID, newp.toBytes()); 
-
-            myNode.send(msg, message.source);  
-        }
-
-        else if(p.messageType == 2)
-        //Message type 2 is (array of neighbors)
-        {
-            NodeID [] rcvdNeighbors = p.oneHopNeighbors;
-            //parse for what's needed
-            int neighborLength = rcvdNeighbors.length;
-            for (i = 0; i < neighborLength; i++)
+            //buffer
+            while(myRound < messageRound)
             {
-                if (rcvdNeighbors[i] == myID)
-                {
-                    //discard
-                }
-                else if(rcvdNeighbors[i] == already discovered neighbor)
-                {
-                    //discard
-                } 
-                else 
-                {
-                    //write to output file
-                }
+                wait();
             }
         }
-        }
-        
-        if(round >= numOfRows)
+
+        else if(messageRound == myRound)
         {
-            buffer;
+            if(p.messageType == 1)
+            {
+                //Messagetype 1 is (do getNeighbors)
+                //send oneHopNeighbors to source
+			
+                Payload newp = new Payload(2, myRound, oneHopNeighbors);
+                Message msg = new Message(myID, newp.toBytes()); 
+                myNode.send(msg, message.source);  
+            }
+
+            else if(p.messageType == 2)
+            //Message type 2 is (array of neighbors)
+            {
+                NodeID [] rcvdNeighbors;
+                neighborLength = (p.oneHopNeighbors).length;
+                allHopLength = allHopNeighbors.length;
+                for(i = 0; i < neighborLength; i++)
+                {
+                    rcvdNeighbors[i] = p.oneHopNeighbors[i];
+                    allHopNeighbors[i + allHopLength] = (myNode.getNeighbors())[i];
+                }
+
+                int rcvdNeighborLength = rcvdNeighbors.length;
+                //parse for what's needed
+                for(int i = 0; i < rcvdNeighborLength; i++)
+                {
+                    for(int j = 0; j < allHopLength; j++)
+                    {
+                        if (!(rcvdNeighbors[i] == myID) || (rcvdNeighbors[i] == allHopNeighbors[j]))
+                        {
+                            //write to output file
+                            myRound++;
+                        }
+                    }
+
+                }   
+            }   
         }
         
     }
@@ -100,15 +125,12 @@ class Application implements Listener
     //Synchronized method only releases control on wait or return
     public synchronized void discoverNeighbors()
     {
-        //ROUND k
         //send message type 1 to all k-hop neighbors
-
-        int neighborLength = oneHopNeighbors.length;
-        for (i = 0; i < neighborLength; i++)
+        for (int i = 0; i < neighborLength; i++)
         {
-            Payload p = new Payload(1, round, oneHopNeighbors);
+            Payload p = new Payload(1, myRound, oneHopNeighbors);
             Message msg = new Message(myID, p.toBytes());
-            myNode.send(message, oneHopNeighbors[i]);
+            myNode.send(msg, oneHopNeighbors[i]);
         }
     }
 
@@ -126,30 +148,24 @@ class Application implements Listener
     {
         //Construct node
         myNode = new Node(myID, configFile, this);
-        NodeID [] oneHopNeighbors = myNode.getNeighbors();
+        NodeID [] oneHopNeighbors = null;
+        neighborLength = (myNode.getNeighbors()).length;
+        for(int i = 0; i < neighborLength; i++)
+        {
+            oneHopNeighbors[i] = (myNode.getNeighbors())[i];
+            allHopNeighbors[i] = (myNode.getNeighbors())[i];
+        }
 
         //write neighbors to output file
-		String outputData = "1: neighbors[1] neighbors[2]";
-		try{
-			//Creates FileWriter
-			Filewriter output = new FileWriter(String myID, true);
-			//Writes the string to the file
-			output.write(outputData;)
-			//Closes the writer
-			output.close();
-		}
-		catch (Exception e) {
-			e.getStackTrace ();
-		}
-
-        //numOfRows
+        
+        myRound++;
         //numOfNodes
         
         //Node initiates neighbor detection
-        while (round <= numOfNodes)
+        while (myRound <= numOfNodes)
         {
             discoverNeighbors();
-            round++;
+            myRound++;
         }
         
         myNode.tearDown();
