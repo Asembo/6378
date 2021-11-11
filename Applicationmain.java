@@ -71,12 +71,12 @@ class Application implements Listener
             {
                 //Messagetype 1 is (do getNeighbors)
                 //send oneHopNeighbors to source
-			
+                System.out.println("Message 1 was received from " + (message.source).getID() + " round "+ messageRound);
                 Payload newp = new Payload(2, myRound, oneHopNeighbors);
                 Message msg = new Message(myID, newp.toBytes()); 
-                myNode.send(msg, message.source);  
+                myNode.send(msg, message.source); 
+                System.out.println("Sending message 2 for round " + myRound + " to " + (message.source).getID()); 
                 rcvdMessages++;
-                System.out.println("Message 1 was received from " + (message.source).getID());
             }
 
             else if(p.messageType == 2)
@@ -89,7 +89,7 @@ class Application implements Listener
                 {
                     rcvdNeighbors[i] = p.oneHopNeighbors[i];
                 }
-                System.out.println("Message 2 was received from " + (message.source).getID());
+                System.out.println("Message 2 was received from " + (message.source).getID() + " round " + messageRound);
 
                 //int rcvdNeighborLength = rcvdNeighbors.length;
                 //parse for what's needed
@@ -104,10 +104,10 @@ class Application implements Listener
 							break;
 					}
 
-					if(k < 0 && rcvdNeighbors[i] != myID)
+					if(k < 0 && rcvdNeighbors[i].getID()!= myID.getID())
 					{
 						//Output
-						stream.println("Neighbors should be printed HERE!!!!");
+						stream.print(rcvdNeighbors[i].getID() + " ");
 					}
                 } 
                 rcvdMessages++;
@@ -149,8 +149,8 @@ class Application implements Listener
         {
             Payload p = new Payload(1, myRound, oneHopNeighbors);
             Message msg = new Message(myID, p.toBytes());
-            myNode.send(msg, oneHopNeighbors[i]);
-            System.out.println("Sending message for round " + myRound);
+            myNode.send(msg, allHopNeighbors[i]);
+            System.out.println("Sending message 1 for round " + myRound + " to " + (oneHopNeighbors[i]).getID());
         }
         
         
@@ -222,10 +222,11 @@ class Application implements Listener
             {
                 receive(map.get(myRound));
             }
-            System.out.println("Round " + myRound);
+            System.out.println("ROUND " + myRound);
             discoverNeighbors();
+            System.out.println("Number of messages received: " + rcvdMessages);
             myRound++;
-            int rcvdMessages = 0;
+            rcvdMessages = 0;
         }
         
         myNode.tearDown();
