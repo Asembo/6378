@@ -95,6 +95,7 @@ class Application implements Listener
                 //parse for what's needed
                 for(int i = 0; i < rcvdNeighborLength; i++)
                 {
+                    allHopLength = allHopNeighbors.length;
                     int k = allHopNeighbors.length - 1;
 					while(!(k < 0)) {
 						if(rcvdNeighbors[i] != allHopNeighbors[k])
@@ -106,6 +107,11 @@ class Application implements Listener
 
 					if(k < 0 && rcvdNeighbors[i].getID()!= myID.getID())
 					{
+                        //update allHopNeighbors
+                        //System.out.println("All hop neighbors: " + allHopNeighbors[0].getID() +  allHopNeighbors[1].getID());
+                        allHopNeighbors = Arrays.copyOf(allHopNeighbors, allHopLength + 1);
+                        allHopNeighbors[allHopLength] = rcvdNeighbors[i]; 
+                        //System.out.println("All hop neighbors 3: "  +  allHopNeighbors[2].getID());
 						//Output
 						stream.print(rcvdNeighbors[i].getID() + " ");
 					}
@@ -144,15 +150,17 @@ class Application implements Listener
     //Synchronized method only releases control on wait or return
     public synchronized void discoverNeighbors()
     {
+        allHopLength = allHopNeighbors.length;
         //send message type 1 to all k-hop neighbors
-        for(int i = 0; i < neighborLength; i++)
+        for(int i = allHopLength - 2; i < allHopLength; i++)
         {
+            System.out.println("All Hop Length " + allHopLength);
+            System.out.println("All Hop Neighbor " + allHopNeighbors[i].getID());
             Payload p = new Payload(1, myRound, oneHopNeighbors);
             Message msg = new Message(myID, p.toBytes());
             myNode.send(msg, allHopNeighbors[i]);
             System.out.println("Sending message 1 for round " + myRound + " to " + (oneHopNeighbors[i]).getID());
         }
-        
         
         while(rcvdMessages < neighborLength * 2)
         {
